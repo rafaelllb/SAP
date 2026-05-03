@@ -1,4 +1,4 @@
-/*! normalize.css v2.1.1 | MIT License | git.io/normalize */
+﻿/*! normalize.css v2.1.1 | MIT License | git.io/normalize */
 /* ==========================================================================
    HTML5 display definitions
    ========================================================================== */
@@ -3641,14 +3641,12 @@ table ul {
   width: 166px;
   height: 55px;
   margin: 0 auto;
-  background: url("../img/biz-ex-logo.png") no-repeat center;
-  background-size: contain;
+  background: url("../img/biz-ex-logo.png") no-repeat center; background-size: contain;
 }
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   /* line 304, ../../sass/_export.scss */
   .biz-ex-logo-img {
-    background: url("../img/biz-ex-logo-2x.png") no-repeat center;
-    background-size: contain;
+    background: url("../img/biz-ex-logo-2x.png") no-repeat center; background-size: contain;
   }
 }
 
