@@ -80,36 +80,6 @@ if (Test-Path $cssFile) {
     Write-Host "[ERRO] app.css nao encontrado" -ForegroundColor Red
 }
 
-# 5. Configurar pagina inicial como S4HANA Utilities Process
-$viewerFile = Join-Path $basePath "libs\js\app\process-viewer.min.js"
-$configFile = Join-Path $basePath "libs\js\json\configuration.json.js"
-
-if ((Test-Path $viewerFile) -and (Test-Path $configFile)) {
-    # Buscar o ID da pagina S4HANA Utilities Process no configuration.json.js
-    $configContent = Get-Content $configFile -Raw -Encoding UTF8
-
-    # Regex para extrair o ID da pagina pelo nome
-    # Padrao: {"id":"UUID","name":"S4HANA Utilities Process"
-    $pattern = '\{"id":"([a-f0-9\-]+)","name":"S4HANA Utilities Process"'
-    $match = [regex]::Match($configContent, $pattern)
-
-    if ($match.Success) {
-        $s4hanaPageId = $match.Groups[1].Value
-        Write-Host "[INFO] ID encontrado: $s4hanaPageId" -ForegroundColor Yellow
-
-        # Substituir a navegacao inicial de "/list" para o diagrama S4HANA
-        $viewerContent = Get-Content $viewerFile -Raw -Encoding UTF8
-        $viewerContent = $viewerContent -replace 'navigate\("/list"', "navigate(`"/diagram/$s4hanaPageId`""
-
-        Set-Content $viewerFile $viewerContent -Encoding UTF8 -NoNewline
-        Write-Host "[OK] Pagina inicial configurada para S4HANA Utilities Process" -ForegroundColor Green
-    } else {
-        Write-Host "[ERRO] Pagina 'S4HANA Utilities Process' nao encontrada no configuration.json.js" -ForegroundColor Red
-    }
-} else {
-    Write-Host "[ERRO] Arquivos necessarios nao encontrados" -ForegroundColor Red
-}
-
 Write-Host ""
 Write-Host "Rebranding concluido!" -ForegroundColor Cyan
 Write-Host "Abra index.html no navegador para verificar." -ForegroundColor Gray
