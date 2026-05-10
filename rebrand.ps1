@@ -97,8 +97,13 @@ if ((Test-Path $viewerFile) -and (Test-Path $configFile)) {
         $s4hanaPageId = $match.Groups[1].Value
         Write-Host "[INFO] ID encontrado: $s4hanaPageId" -ForegroundColor Yellow
 
-        # Substituir a navegacao inicial de "/list" para o diagrama S4HANA
         $viewerContent = Get-Content $viewerFile -Raw -Encoding UTF8
+
+        # Substituir a funcao root para redirecionar para o diagrama S4HANA
+        # Original: root:function(){Bizagi.App.History.clear(),Bizagi.App.Model.resetIdDiagram(),Bizagi.App.Model.set({actualView:"TableView",showDialog:!1})}
+        $viewerContent = $viewerContent -replace 'root:function\(\)\{Bizagi\.App\.History\.clear\(\),Bizagi\.App\.Model\.resetIdDiagram\(\),Bizagi\.App\.Model\.set\(\{actualView:"TableView",showDialog:!1\}\)\}', "root:function(){Bizagi.App.Router.navigate(`"diagram/$s4hanaPageId`",{trigger:!0})}"
+
+        # Substituir navigate("/list") caso exista
         $viewerContent = $viewerContent -replace 'navigate\("/list"', "navigate(`"/diagram/$s4hanaPageId`""
 
         Set-Content $viewerFile $viewerContent -Encoding UTF8 -NoNewline
