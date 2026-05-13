@@ -41,9 +41,11 @@
             // Rastreia abertura de propriedades de elementos
             if (href.indexOf('dialog/element') !== -1) {
               var elementId = href.split('/').pop();
+              var elementName = link.getAttribute('title') || link.textContent.trim();
               gtag('event', 'view_element_properties', {
                 'event_category': 'interaction',
-                'event_label': elementId
+                'event_label': elementId,
+                'element_name': elementName
               });
             }
           }
