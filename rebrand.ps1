@@ -115,6 +115,24 @@ if ((Test-Path $viewerFile) -and (Test-Path $configFile)) {
     Write-Host "[ERRO] Arquivos necessarios nao encontrados" -ForegroundColor Red
 }
 
+# 6. Injetar analytics.js no index.html
+$indexFile = Join-Path $basePath "index.html"
+$analyticsScript = '    <script src="analytics.js"></script>'
+
+if (Test-Path $indexFile) {
+    $content = Get-Content $indexFile -Raw -Encoding UTF8
+
+    # Verifica se já tem analytics.js
+    if ($content -notmatch 'analytics\.js') {
+        # Injeta antes do </head>
+        $content = $content -replace '</head>', "$analyticsScript`n</head>"
+        Set-Content $indexFile $content -Encoding UTF8 -NoNewline
+        Write-Host "[OK] analytics.js injetado no index.html" -ForegroundColor Green
+    } else {
+        Write-Host "[OK] analytics.js ja presente no index.html" -ForegroundColor Green
+    }
+}
+
 Write-Host ""
 Write-Host "Rebranding concluido!" -ForegroundColor Cyan
 Write-Host "Abra index.html no navegador para verificar." -ForegroundColor Gray
