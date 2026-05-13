@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"$c = Get-Content ''libs\\\\js\\\\json\\\\configuration.json.js'' -Raw; $c.Substring\\(0, 500\\)\")"
+    ]
+  }
+}
