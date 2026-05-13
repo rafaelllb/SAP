@@ -11,6 +11,43 @@
     <link rel="stylesheet" href="libs/css/app.css" type="text/css" />
     <script type="text/javascript" src="libs/js/app/app.bizagi.min.js"></script>
     <link href="libs/css/google-opensans.css" rel="stylesheet">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRFLL5744D"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-FRFLL5744D');
+
+      // Eventos customizados para rastrear interações no Bizagi Viewer
+      document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(e) {
+          var link = e.target.closest('.biz-ex-navigate');
+          if (link) {
+            var href = link.getAttribute('href') || '';
+
+            // Rastreia navegação entre diagramas
+            if (href.indexOf('diagram/') !== -1) {
+              var diagramId = href.split('diagram/')[1];
+              gtag('event', 'view_diagram', {
+                'event_category': 'navigation',
+                'event_label': diagramId
+              });
+            }
+
+            // Rastreia abertura de propriedades de elementos
+            if (href.indexOf('dialog/element') !== -1) {
+              var elementId = href.split('/').pop();
+              gtag('event', 'view_element_properties', {
+                'event_category': 'interaction',
+                'event_label': elementId
+              });
+            }
+          }
+        });
+      });
+    </script>
 </head>
 
 <body class="off-canvas hide-extras">
