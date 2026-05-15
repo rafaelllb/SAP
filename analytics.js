@@ -98,6 +98,34 @@
     return 'other';
   }
 
+  // Extrai nomes do DOM atual (mais preciso que dados do link)
+  // Estrutura: h1.biz-ex-title-process = processo geral
+  //            h2.biz-ex-title-diagram = diagrama específico sendo visualizado
+  //            h2.biz-ex-dialog-name = nome do elemento no dialog aberto
+  function getDOMContext() {
+    var processTitle = document.querySelector('h1.biz-ex-title-process');
+    var diagramTitle = document.querySelector('h2.biz-ex-title-diagram');
+    var dialogName = document.querySelector('h2.biz-ex-dialog-name');
+
+    return {
+      processName: processTitle ? processTitle.textContent.trim() : null,
+      diagramName: diagramTitle ? (diagramTitle.getAttribute('title') || diagramTitle.textContent.trim()) : null,
+      dialogElementName: dialogName ? dialogName.textContent.trim() : null
+    };
+  }
+
+  // Obtém nome do diagrama atual do DOM ou fallback para dados do modelo
+  function getCurrentDiagramName(fallbackName) {
+    var ctx = getDOMContext();
+    return ctx.diagramName || ctx.processName || fallbackName || 'unknown';
+  }
+
+  // Obtém nome do elemento atual do DOM ou fallback
+  function getCurrentElementName(fallbackName) {
+    var ctx = getDOMContext();
+    return ctx.dialogElementName || fallbackName || 'unknown';
+  }
+
   // Detecta tipo de dispositivo
   function getDeviceType() {
     var ua = navigator.userAgent;
@@ -192,19 +220,27 @@
       trackDiagramEngagement(previousDiagram, previousDiagramName);
     }
 
+    // Usa nome do DOM se disponível (mais preciso), senão fallback para link/modelo
+    // Aguarda DOM atualizar após navegação (setTimeout 0 para próximo tick)
+    var resolvedDiagramName = diagram ? diagram.name : diagramName;
+
     // Atualiza estado da sessão
     session.diagramsViewed.push(diagramId);
     session.currentDiagram = diagramId;
-    session.currentDiagramName = diagramName;
+    session.currentDiagramName = resolvedDiagramName;
     session.diagramStartTime = Date.now();
     session.diagramElementClicks = 0;
     session.zoomInteractions = 0;
     session.fullscreenUsed = false;
 
+    // Captura contexto DOM atual
+    var domContext = getDOMContext();
+
     gtag('event', 'view_diagram', {
       'session_id': session.id,
       'diagram_id': diagramId,
-      'diagram_name': diagramName,
+      'diagram_name': resolvedDiagramName,
+      'process_name': domContext.processName || 'unknown',
       'diagram_author': diagram ? (diagram.author || 'Unknown') : 'Unknown',
       'diagram_version': diagram ? (diagram.version || '1.0') : '1.0',
       'is_subprocess': diagram ? (diagram.isSubprocessPage || false) : false,
@@ -253,21 +289,36 @@
     var hasAttachments = element && element.attributes && element.attributes.length > 0;
     var hasProperties = element && element.properties && element.properties.length > 0;
 
-    gtag('event', 'view_element', {
-      'session_id': session.id,
-      'element_id': elementId,
-      'element_name': elementName,
-      'element_type': elementType,
-      'element_category': categorizeElementType(elementType),
-      'diagram_id': diagramId || 'unknown',
-      'diagram_name': session.currentDiagramName || 'unknown',
-      'has_description': hasDescription,
-      'has_attachments': hasAttachments,
-      'has_properties': hasProperties,
-      'performer_role': performerRole || 'none',
-      'interaction_sequence': session.interactionSequence,
-      'elements_in_session': session.elementsViewed.length
-    });
+    // Resolve nome do elemento: prioridade DOM > modelo > link
+    // O DOM (h2.biz-ex-dialog-name) mostra o nome exato do elemento no dialog
+    var resolvedElementName = element ? element.name : elementName;
+
+    // Captura contexto DOM para nomes exibidos na tela
+    var domContext = getDOMContext();
+
+    // Aguarda DOM atualizar e captura nome real do dialog se disponível
+    setTimeout(function() {
+      var updatedContext = getDOMContext();
+      var displayedElementName = updatedContext.dialogElementName || resolvedElementName;
+
+      gtag('event', 'view_element', {
+        'session_id': session.id,
+        'element_id': elementId,
+        'element_name': displayedElementName,
+        'element_name_from_model': resolvedElementName,
+        'element_type': elementType,
+        'element_category': categorizeElementType(elementType),
+        'diagram_id': diagramId || 'unknown',
+        'diagram_name': session.currentDiagramName || 'unknown',
+        'process_name': domContext.processName || 'unknown',
+        'has_description': hasDescription,
+        'has_attachments': hasAttachments,
+        'has_properties': hasProperties,
+        'performer_role': performerRole || 'none',
+        'interaction_sequence': session.interactionSequence,
+        'elements_in_session': session.elementsViewed.length
+      });
+    }, 50); // Pequeno delay para DOM atualizar com dialog
   }
 
   // ===== EVENTO 4: DIAGRAM_ENGAGEMENT =====
